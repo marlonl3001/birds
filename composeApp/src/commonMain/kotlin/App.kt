@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -45,47 +46,43 @@ fun BirdAppTheme(
 @Composable
 fun App() {
     BirdAppTheme {
-        val viewModel = getViewModel(Unit, viewModelFactory { BirdsViewModel() })
-        val uiState by viewModel.uiState.collectAsState()
-
-        LaunchedEffect(viewModel) {
-            viewModel.updateImages()
+        val birdsViewModel = getViewModel(Unit, viewModelFactory { BirdsViewModel() })
+        val uiState by birdsViewModel.uiState.collectAsState()
+        LaunchedEffect(birdsViewModel) {
+            birdsViewModel.updateImages()
         }
 
-        BirdsPage(uiState) { category ->
-            viewModel.selectCategory(category)
-        }
+        BirdsPage(uiState, onSelectCategory = { birdsViewModel.selectCategory(it) })
     }
 }
 
 @Composable
 fun BirdsPage(uiState: BirdsUiState, onSelectCategory: (String) -> Unit) {
-    Column {
+    Column(
+        Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(5.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp)
+            modifier = Modifier.fillMaxWidth().padding(5.dp),
         ) {
-            uiState.categories.forEach { category ->
+            for (category in uiState.categories) {
                 Button(
-                    modifier = Modifier
-                        .aspectRatio(1.0f)
-                        .weight(1.0f),
-                    onClick = { onSelectCategory(category) }
+                    onClick = { onSelectCategory(category) },
+                    modifier = Modifier.aspectRatio(1.0f).weight(1.0f)
                 ) {
                     Text(category)
                 }
             }
         }
+
         AnimatedVisibility(visible = uiState.selectedImages.isNotEmpty()) {
             LazyVerticalGrid(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 5.dp),
                 columns = GridCells.Adaptive(180.dp),
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 5.dp),
             ) {
                 items(uiState.selectedImages) { image ->
                     BirdImageCell(image)
@@ -101,6 +98,6 @@ fun BirdImageCell(image: BirdImage) {
         resource = asyncPainterResource("https://sebastianaigner.github.io/demo-image-api/${image.path}"),
         contentDescription = "${image.category} by ${image.author}",
         contentScale = ContentScale.Crop,
-        modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+        modifier = Modifier.fillMaxWidth().aspectRatio(1.0f),
     )
 }

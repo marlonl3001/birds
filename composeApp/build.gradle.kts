@@ -1,5 +1,4 @@
 import org.jetbrains.compose.ExperimentalComposeLibrary
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -17,12 +16,6 @@ kotlin {
         }
     }
     
-    jvm("desktop") {
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
-        }
-    }
-    
     listOf(
         iosX64(),
         iosArm64(),
@@ -35,40 +28,30 @@ kotlin {
     }
     
     sourceSets {
-        val desktopMain by getting
-        
+
         androidMain.dependencies {
+            implementation(libs.compose.ui)
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.compose.ui)
             implementation(libs.ktor.client.okhttp)
         }
         iosMain.dependencies {
-            //okhttp client for iOS
             implementation(libs.ktor.client.darwin)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
-            implementation(compose.ui)
+            implementation(compose.material)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
-            //Asynchronous network requests
+
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            //ViewModel for Kotlin Multiplatform
             implementation(libs.moko.mvvm.core)
             implementation(libs.moko.mvvm.compose)
-            //Image loading library
             implementation(libs.kamel)
-        }
-        desktopMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
-            implementation ("ch.qos.logback:logback-classic:1.4.11")
         }
     }
 }
@@ -107,14 +90,3 @@ android {
     }
 }
 
-compose.desktop {
-    application {
-        mainClass = "MainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "br.com.mdr.birds"
-            packageVersion = "1.0.0"
-        }
-    }
-}
